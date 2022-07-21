@@ -15,7 +15,7 @@ import kotlinx.dnq.util.initMetaData
 import java.io.File
 
 fun initializeDB(): TransientEntityStore {
-    XdModel.registerNodes(XdLesson, XdRole, XdSchoolClass, XdToken, XdUser)
+    XdModel.registerNodes(XdJournal, XdLesson, XdRole, XdSchoolClass, XdTimetablePlacing, XdToken, XdUser)
     val databaseHome = File(System.getenv("XODUS_DATABASE_HOME") ?: "./database").also {
         it.mkdirs()
     }
