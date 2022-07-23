@@ -27,7 +27,7 @@ class DatabaseLessonsProviderImpl(private val store: TransientEntityStore) : Dat
             id = lesson.id
         }
         newLesson.title = lesson.title
-        newLesson.date = lesson.date
+        newLesson.setDate(lesson.date)
         newLesson.placeInTimetable = lesson.placeInTimetable
         newLesson.teachers = lesson.teachers
         newLesson.subgroupID = lesson.subgroupID
@@ -84,7 +84,7 @@ class DatabaseLessonsProviderImpl(private val store: TransientEntityStore) : Dat
     override fun getLessonsForClass(classID: ClassID, datesRange: Pair<LocalDate, LocalDate>): List<Lesson> {
         return store.transactional(readonly = true) {
             XdLesson.filter {
-                it.schoolClass.id eq classID and (it.date between (datesRange.first to datesRange.second))
+                it.schoolClass.id eq classID and (it.getDate() between (datesRange.first to datesRange.second))
             }.toList().map { it.toLesson() }
         }
     }

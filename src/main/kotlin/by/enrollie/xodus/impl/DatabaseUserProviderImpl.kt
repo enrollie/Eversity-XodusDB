@@ -54,12 +54,12 @@ class DatabaseUserProviderImpl(private val store: TransientEntityStore) : Databa
 
     override fun getUser(userID: UserID): User? {
         return store.transactional(readonly = true) {
-            XdUser.query(XdUser::id eq userID).firstOrNull()?.asUser
+            XdUser.query(XdUser::id eq userID).firstOrNull()?.asUser()
         }
     }
 
     override fun getUsers(): List<User> = store.transactional(readonly = true) {
-        XdUser.all().toList().map { it.asUser }
+        XdUser.all().toList().map { it.asUser() }
     }
 
     override fun <T : Any> updateUser(userID: UserID, field: Field<T>, value: T) {

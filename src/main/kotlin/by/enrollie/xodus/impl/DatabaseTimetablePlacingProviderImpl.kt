@@ -22,7 +22,7 @@ class DatabaseTimetablePlacingProviderImpl(private val store: TransientEntitySto
         return store.transactional(readonly = true) {
             XdTimetablePlacing.query((XdTimetablePlacing::effectiveSince le DateTime.now()) and (XdTimetablePlacing::effectiveUntil eq null))
                 .first().let {
-                    TimetablePlaces(it.firstShift, it.secondShift)
+                    TimetablePlaces(it.getFirstShift(), it.getSecondShift())
                 }
         }
     }
@@ -34,7 +34,7 @@ class DatabaseTimetablePlacingProviderImpl(private val store: TransientEntitySto
                     .toJodaDateTime()) and ((XdTimetablePlacing::effectiveUntil eq null) or (XdTimetablePlacing::effectiveUntil ge date.atStartOfDay()
                     .toJodaDateTime()))
             ).firstOrNull()?.let {
-                TimetablePlaces(it.firstShift, it.secondShift)
+                TimetablePlaces(it.getFirstShift(), it.getSecondShift())
             }
         }
     }
@@ -45,9 +45,9 @@ class DatabaseTimetablePlacingProviderImpl(private val store: TransientEntitySto
                 it.effectiveUntil = DateTime.now().withTimeAtStartOfDay()
             }
             XdTimetablePlacing.new {
-                this.firstShift = timetablePlaces.firstShift
-                this.secondShift = timetablePlaces.secondShift
-                this.effectiveSince = DateTime.now().withTimeAtStartOfDay()
+                setFirstShift(timetablePlaces.firstShift)
+                setSecondShift(timetablePlaces.secondShift)
+                effectiveSince = DateTime.now().withTimeAtStartOfDay()
             }
         }
     }

@@ -12,7 +12,6 @@ import by.enrollie.data_classes.RoleInformationHolder
 import by.enrollie.data_classes.Roles
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
-import kotlinx.dnq.simple.isAfter
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -25,42 +24,38 @@ class XdRole(entity: Entity) : XdEntity(entity) {
     var roleID by xdRequiredStringProp()
     private var roleRawData by xdRequiredBlobStringProp()
 
-    /**
-     * Do not use in queries.
-     */
-    var roleInformation: RoleInformationHolder
-        get() = Json.decodeFromString(roleRawData)
-        set(value) {
-            roleRawData = Json.encodeToString(value)
-        }
-    var granted by xdRequiredDateTimeProp {  }
-    var revoked by xdDateTimeProp { isAfter({ granted }) }
+    fun setRoleInformation(roleInformation: RoleInformationHolder) {
+        roleRawData = Json.encodeToString(roleInformation)
+    }
 
-    /**
-     * Do not use in queries.
-     */
-    val asRoleData: RoleData<*>
-        get() = RoleData(user.id,
-            Roles.getRoleByID(roleID) ?: error("Role with ID $roleID not found"),
-            roleInformation,
+    fun getRoleInformation(): RoleInformationHolder {
+        return Json.decodeFromString(roleRawData)
+    }
+
+    var granted by xdRequiredDateTimeProp { }
+    var revoked by xdDateTimeProp {  }
+
+    fun getAsRoleData(): RoleData<*> = RoleData(user.id,
+        Roles.getRoleByID(roleID) ?: error("Role with ID $roleID not found"),
+        getRoleInformation(),
+        LocalDateTime.of(
+            granted.year,
+            granted.monthOfYear,
+            granted.dayOfMonth,
+            granted.hourOfDay,
+            granted.minuteOfHour,
+            granted.secondOfMinute,
+            granted.millisOfSecond
+        ),
+        revoked?.let {
             LocalDateTime.of(
-                granted.year,
-                granted.monthOfYear,
-                granted.dayOfMonth,
-                granted.hourOfDay,
-                granted.minuteOfHour,
-                granted.secondOfMinute,
-                granted.millisOfSecond
-            ),
-            revoked?.let {
-                LocalDateTime.of(
-                    it.year,
-                    it.monthOfYear,
-                    it.dayOfMonth,
-                    it.hourOfDay,
-                    it.minuteOfHour,
-                    it.secondOfMinute,
-                    it.millisOfSecond
-                )
-            })
+                it.year,
+                it.monthOfYear,
+                it.dayOfMonth,
+                it.hourOfDay,
+                it.minuteOfHour,
+                it.secondOfMinute,
+                it.millisOfSecond
+            )
+        })
 }

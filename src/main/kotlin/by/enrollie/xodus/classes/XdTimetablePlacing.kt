@@ -20,16 +20,15 @@ class XdTimetablePlacing(entity: Entity) : XdEntity(entity) {
 
     private var rawFirstShift by xdRequiredBlobStringProp()
     private var rawSecondShift by xdRequiredBlobStringProp()
-    var firstShift: Map<TimetablePlace, EventConstraints>
-        get() = Json.decodeFromString(rawFirstShift)
-        set(value) {
-            rawFirstShift = Json.encodeToString(value)
-        }
-    var secondShift: Map<TimetablePlace, EventConstraints>
-        get() = Json.decodeFromString(rawSecondShift)
-        set(value) {
-            rawSecondShift = Json.encodeToString(value)
-        }
+    fun getFirstShift(): Map<TimetablePlace, EventConstraints> = Json.decodeFromString(rawFirstShift)
+    fun setFirstShift(value: Map<TimetablePlace, EventConstraints>) {
+        rawFirstShift = Json.encodeToString(value)
+    }
+
+    fun getSecondShift(): Map<TimetablePlace, EventConstraints> = Json.decodeFromString(rawSecondShift)
+    fun setSecondShift(value: Map<TimetablePlace, EventConstraints>) {
+        rawSecondShift = Json.encodeToString(value)
+    }
 
     var effectiveSince by xdRequiredDateTimeProp { }
     var effectiveUntil by xdDateTimeProp { }

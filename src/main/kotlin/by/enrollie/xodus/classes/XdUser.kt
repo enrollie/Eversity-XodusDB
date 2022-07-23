@@ -24,9 +24,5 @@ class XdUser(entity: Entity) : XdEntity(entity) {
     val roles by xdChildren0_N(XdRole::user)
     val tokens by xdChildren0_N(XdToken::user)
 
-    /**
-     * Do not use in queries.
-     */
-    val asUser: User
-        get() = User(id, Name(firstName, middleName, lastName))
+    fun asUser() = User(id, Name(firstName, middleName, lastName))
 }

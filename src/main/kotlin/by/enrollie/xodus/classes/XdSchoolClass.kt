@@ -26,15 +26,10 @@ class XdSchoolClass(entity: Entity) : XdEntity(entity) {
     val shift: TeachingShift
         get() = if (isSecondShift) TeachingShift.SECOND else TeachingShift.FIRST
     private var _ordering by xdRequiredBlobStringProp()
-
-    /**
-     * Do not use in queries.
-     */
-    var ordering: List<Pair<UserID, Int>>
-        get() = Json.decodeFromString(_ordering)
-        set(value) {
-            _ordering = Json.encodeToString(value)
-        }
+    fun getOrdering(): List<Pair<UserID, Int>> = Json.decodeFromString(_ordering)
+    fun setOrdering(ordering: List<Pair<UserID, Int>>) {
+        _ordering = Json.encodeToString(ordering)
+    }
 
     val lessons by xdChildren0_N(XdLesson::schoolClass)
 

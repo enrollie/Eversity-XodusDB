@@ -27,7 +27,7 @@ class DatabaseRolesProviderImpl(private val store: TransientEntityStore) : Datab
     private fun newRole(role: RoleData<*>) = XdRole.new {
         user = XdUser.query(XdUser::id eq role.userID).firstOrNull() ?: throw UserDoesNotExistException(role.userID)
         roleID = role.roleID
-        roleInformation = role.getRoleInformationHolder()
+        setRoleInformation(role.getRoleInformationHolder())
         granted = role.roleGrantedDateTime.toJodaDateTime()
         revoked = role.roleRevokedDateTime?.toJodaDateTime()
     }
@@ -49,25 +49,26 @@ class DatabaseRolesProviderImpl(private val store: TransientEntityStore) : Datab
 
     override fun getAllRolesByMatch(match: (RoleData<*>) -> Boolean): List<RoleData<*>> =
         store.transactional(readonly = true) {
-            XdRole.all().toList().filter { match(it.asRoleData) }.map { it.asRoleData }
+            XdRole.all().toList().filter { match(it.getAsRoleData()) }.map { it.getAsRoleData() }
         }
 
     override fun getAllRolesByType(type: Roles.Role): List<RoleData<*>> = store.transactional(readonly = true) {
-        XdRole.query(XdRole::roleID eq type.getID()).toList().map { it.asRoleData }
+        XdRole.query(XdRole::roleID eq type.getID()).toList().map { it.getAsRoleData() }
     }
 
     @OptIn(UnsafeAPI::class)
     override fun getAllRolesWithMatchingEntries(vararg entries: Pair<Roles.Role.Field<*>, Any?>): List<RoleData<*>> {
         return store.transactional(readonly = true) {
             XdRole.filter {
-                it.roleInformation.getAsMap().entries.map { it.key to it.value }.containsAll(entries.toList()) eq true
-            }.toList().map { it.asRoleData }
+                it.getRoleInformation().getAsMap().entries.map { it.key to it.value }
+                    .containsAll(entries.toList()) eq true
+            }.toList().map { it.getAsRoleData() }
         }
     }
 
     override fun getRolesForUser(userID: UserID): List<RoleData<*>> {
         return store.transactional(readonly = true) {
-            XdRole.query(XdRole::user.matches(XdUser::id eq userID)).toList().map { it.asRoleData }
+            XdRole.query(XdRole::user.matches(XdUser::id eq userID)).toList().map { it.getAsRoleData() }
         }
     }
 
@@ -86,9 +87,9 @@ class DatabaseRolesProviderImpl(private val store: TransientEntityStore) : Datab
         store.transactional {
             XdRole.query(XdRole::user.matches(XdUser::id eq role.userID) and (XdRole::roleID eq role.roleID) and (XdRole::granted eq role.roleGrantedDateTime.toJodaDateTime()))
                 .firstOrNull()?.apply {
-                    roleInformation = RoleInformationHolder(*roleInformation.getAsMap().toMutableMap().apply {
+                    setRoleInformation(RoleInformationHolder(*getRoleInformation().getAsMap().toMutableMap().apply {
                         this[field] = value
-                    }.toList().toTypedArray())
+                    }.toList().toTypedArray()))
                 }
         }
     }

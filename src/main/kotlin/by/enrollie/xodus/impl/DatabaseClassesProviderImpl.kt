@@ -52,14 +52,14 @@ class DatabaseClassesProviderImpl(private val store: TransientEntityStore) : Dat
 
     override fun getPupilsOrdering(classID: ClassID): List<Pair<UserID, Int>> = store.transactional(readonly = true) {
         (XdSchoolClass.query(XdSchoolClass::id eq classID).firstOrNull()
-            ?: throw SchoolClassDoesNotExistException(classID)).ordering
+            ?: throw SchoolClassDoesNotExistException(classID)).getOrdering()
     }
 
 
     override fun setPupilsOrdering(classID: ClassID, pupilsOrdering: List<Pair<UserID, Int>>) {
         store.transactional {
             (XdSchoolClass.query(XdSchoolClass::id eq classID).firstOrNull()
-                ?: throw SchoolClassDoesNotExistException(classID)).ordering = pupilsOrdering
+                ?: throw SchoolClassDoesNotExistException(classID)).setOrdering(pupilsOrdering)
         }
     }
 
