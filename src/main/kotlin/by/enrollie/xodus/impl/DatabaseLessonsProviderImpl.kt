@@ -7,15 +7,13 @@
 
 package by.enrollie.xodus.impl
 
-import by.enrollie.data_classes.ClassID
-import by.enrollie.data_classes.JournalID
-import by.enrollie.data_classes.Lesson
-import by.enrollie.data_classes.LessonID
+import by.enrollie.data_classes.*
 import by.enrollie.exceptions.SchoolClassDoesNotExistException
 import by.enrollie.providers.DatabaseLessonsProviderInterface
 import by.enrollie.xodus.classes.XdJournal
 import by.enrollie.xodus.classes.XdLesson
 import by.enrollie.xodus.classes.XdSchoolClass
+import by.enrollie.xodus.util.isBetweenOrEqual
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
@@ -84,7 +82,30 @@ class DatabaseLessonsProviderImpl(private val store: TransientEntityStore) : Dat
     override fun getLessonsForClass(classID: ClassID, datesRange: Pair<LocalDate, LocalDate>): List<Lesson> {
         return store.transactional(readonly = true) {
             XdLesson.filter {
-                it.schoolClass.id eq classID and (it.getDate() between (datesRange.first to datesRange.second))
+                (it.schoolClass.id eq classID) and (it.getDate()
+                    .isBetweenOrEqual(datesRange.first, datesRange.second) eq true)
+            }.toList().map { it.toLesson() }
+        }
+    }
+
+    override fun getLessonsForTeacher(teacherID: UserID): List<Lesson> {
+        return store.transactional(readonly = true) {
+            XdLesson.query(XdLesson::teachers contains teacherID).toList().map { it.toLesson() }
+        }
+    }
+
+    override fun getLessonsForTeacher(teacherID: UserID, date: LocalDate): List<Lesson> {
+        return store.transactional(readonly = true) {
+            XdLesson.query(XdLesson::teachers contains teacherID and (XdLesson::dateAsString eq date.toString()))
+                .toList().map { it.toLesson() }
+        }
+    }
+
+    override fun getLessonsForTeacher(teacherID: UserID, datesRange: Pair<LocalDate, LocalDate>): List<Lesson> {
+        return store.transactional(readonly = true) {
+            XdLesson.filter {
+                (it.teachers.contains(teacherID) eq true) and (it.getDate()
+                    .isBetweenOrEqual(datesRange.first, datesRange.second) eq true)
             }.toList().map { it.toLesson() }
         }
     }

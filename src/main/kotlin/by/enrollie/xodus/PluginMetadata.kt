@@ -17,11 +17,16 @@ const val PLUGIN_ID = "EversityXodusDB"
 
 class PluginMetadata : PluginMetadataInterface {
     override val author: String = "Enrollie"
-    override val title: String = "Eversity-XodusDB"
-    override val version: String by lazy {
+    override val pluginApiVersion: String
+    override val name: String = PLUGIN_ID
+    override val version: String
+    init {
         Properties().also {
             it.load(javaClass.classLoader.getResourceAsStream("metadata.properties"))
-        }.getProperty("version")
+        }.also {
+            version = it.getProperty("version")
+            pluginApiVersion = it.getProperty("apiVersion")
+        }
     }
 
     override fun onLoad() {

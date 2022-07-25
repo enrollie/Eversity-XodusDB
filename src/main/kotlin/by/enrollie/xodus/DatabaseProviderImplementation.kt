@@ -12,9 +12,9 @@ import by.enrollie.xodus.impl.*
 import jetbrains.exodus.database.TransientEntityStore
 
 class DatabaseProviderImplementation : DatabaseProviderInterface {
-    private val store: TransientEntityStore = initializeDB()
+    override val databasePluginID: String = PLUGIN_ID
 
-    override val databaseID: String = PLUGIN_ID
+    private val store: TransientEntityStore = initializeDB()
 
     override val authenticationDataProvider: DatabaseAuthenticationDataProviderInterface =
         DatabaseAuthenticationDataProviderImpl(store)

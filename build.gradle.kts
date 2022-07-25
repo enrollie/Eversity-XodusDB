@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,7 +7,7 @@ plugins {
 }
 
 group = "by.enrollie"
-version = "1.0-SNAPSHOT"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -16,50 +17,41 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
-    compileOnly("by.enrollie:eversity-shared-api:0.1.1-alpha.6")
-    implementation("org.jetbrains.xodus:dnq:2.0.0") {
-        exclude("org.slf4j")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
-        exclude("org.jetbrains.kotlin", "kotlin-reflect")
+    implementation(kotlin("stdlib"))
+    compileOnly("by.enrollie:eversity-shared-api:0.1.1-alpha.9")
+    implementation("org.jetbrains.xodus:dnq:2.0.0")
+    implementation("org.jetbrains.xodus:xodus-entity-store:2.0.1")
+    implementation("org.jetbrains.xodus:xodus-query:2.0.1")
+    implementation("org.jetbrains.xodus:xodus-utils:2.0.1")
+    implementation("org.jetbrains.xodus:xodus-environment:2.0.1")
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    dependencies {
+        exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib"))
+        exclude(dependency("org.jetbrains.kotlin:kotlin-stdlib-common"))
+        exclude(dependency("org.jetbrains.kotlin:kotlin-reflect"))
+        exclude(dependency("org.slf4j:slf4j-api"))
     }
-    implementation("org.jetbrains.xodus:xodus-entity-store:2.0.1") {
-        exclude("org.slf4j")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
-        exclude("org.jetbrains.kotlin", "kotlin-reflect")
-    }
-    implementation("org.jetbrains.xodus:xodus-query:2.0.1") {
-        exclude("org.slf4j")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
-        exclude("org.jetbrains.kotlin", "kotlin-reflect")
-    }
-    implementation("org.jetbrains.xodus:xodus-utils:2.0.1") {
-        exclude("org.slf4j")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
-        exclude("org.jetbrains.kotlin", "kotlin-reflect")
-    }
-    implementation("org.jetbrains.xodus:xodus-environment:2.0.1") {
-        exclude("org.slf4j")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
-        exclude("org.jetbrains.kotlin", "kotlin-reflect")
-    }
-//    testImplementation(kotlin("test"))
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 
+tasks.register("cleanResources"){
+    delete("$buildDir/resources")
+    this.didWork = true
+}
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.dependsOn.add((tasks.getByName("processResources") as ProcessResources).apply {
+    dependsOn("cleanResources")
     filesMatching("metadata.properties") {
         val props = mutableMapOf<String, String>()
         props["version"] = project.version.toString()
+        props["apiVersion"] =
+            configurations.getByName("compileOnly").allDependencies.first { it.name == "eversity-shared-api" }.version.toString()
         expand(props)
     }
 })
