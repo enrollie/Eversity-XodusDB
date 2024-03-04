@@ -16,4 +16,5 @@ class XdToken(entity: Entity) : XdEntity(entity) {
     var user: XdUser by xdParent(XdUser::tokens)
     var token: String by xdRequiredStringProp()
     var issued by xdRequiredDateTimeProp()
+    var expired by xdDateTimeProp {  }
 }

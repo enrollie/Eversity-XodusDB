@@ -7,11 +7,17 @@
 
 package by.enrollie.xodus.classes
 
+import by.enrollie.data_classes.Roles
 import by.enrollie.data_classes.SchoolClass
 import by.enrollie.data_classes.TeachingShift
 import by.enrollie.data_classes.UserID
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
+import kotlinx.dnq.query.FilteringContext.le
+import kotlinx.dnq.query.eq
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.query
+import kotlinx.dnq.query.toList
 import kotlinx.dnq.simple.requireIf
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -22,11 +28,20 @@ class XdSchoolClass(entity: Entity) : XdEntity(entity) {
 
     var id by xdRequiredIntProp()
     var title by xdRequiredStringProp()
-    var isSecondShift by xdBooleanProp { requireIf { true } } // It must be set
-    val shift: TeachingShift
-        get() = if (isSecondShift) TeachingShift.SECOND else TeachingShift.FIRST
-    private var _ordering by xdRequiredBlobStringProp()
-    fun getOrdering(): List<Pair<UserID, Int>> = Json.decodeFromString(_ordering)
+    private var _shift by xdRequiredStringProp { }
+    var shift: TeachingShift
+        get() = TeachingShift.valueOf(_shift)
+        set(value) {
+            _shift = value.name
+        }
+
+    private var _ordering by xdBlobStringProp()
+    fun getOrdering(): List<Pair<UserID, Int>> =
+        _ordering?.let { Json.decodeFromString<List<Pair<UserID, Int>>>(it) } ?: XdRole.all().toList().filter {
+            (it.roleID == Roles.CLASS.STUDENT.getID()) && ((it.getRoleInformation()[Roles.CLASS.STUDENT.classID] as? Int) == id) && (it.revoked == null)
+        }.toList().sortedBy { "${it.user.lastName} ${it.user.firstName}" }
+            .mapIndexed { index, xdRole -> xdRole.user.id to index + 1 }
+
     fun setOrdering(ordering: List<Pair<UserID, Int>>) {
         _ordering = Json.encodeToString(ordering)
     }

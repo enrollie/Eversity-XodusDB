@@ -7,23 +7,28 @@ plugins {
 }
 
 group = "by.enrollie"
-version = "0.1.0"
+version = "0.1.8"
 
 repositories {
     mavenCentral()
     maven {
         url = uri("https://packages.neitex.me/releases")
     }
+    maven{
+        url = uri("https://libraries.minecraft.net")
+    }
 }
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("by.enrollie:eversity-shared-api:0.1.1-alpha.9")
+    compileOnly("by.enrollie:eversity-shared-api:0.9.1")
+    compileOnly("org.slf4j:slf4j-api:2.0.5")
     implementation("org.jetbrains.xodus:dnq:2.0.0")
     implementation("org.jetbrains.xodus:xodus-entity-store:2.0.1")
     implementation("org.jetbrains.xodus:xodus-query:2.0.1")
     implementation("org.jetbrains.xodus:xodus-utils:2.0.1")
     implementation("org.jetbrains.xodus:xodus-environment:2.0.1")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
 }
 
 tasks.named<ShadowJar>("shadowJar") {
@@ -47,7 +52,7 @@ tasks.register("cleanResources"){
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.dependsOn.add((tasks.getByName("processResources") as ProcessResources).apply {
     dependsOn("cleanResources")
-    filesMatching("metadata.properties") {
+    filesMatching("xodusMetadata.properties") {
         val props = mutableMapOf<String, String>()
         props["version"] = project.version.toString()
         props["apiVersion"] =

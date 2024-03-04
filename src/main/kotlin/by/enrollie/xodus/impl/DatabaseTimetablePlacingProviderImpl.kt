@@ -7,6 +7,7 @@
 
 package by.enrollie.xodus.impl
 
+import by.enrollie.data_classes.TimetableCell
 import by.enrollie.data_classes.TimetablePlaces
 import by.enrollie.providers.DatabaseTimetablePlacingProviderInterface
 import by.enrollie.xodus.classes.XdTimetablePlacing
@@ -22,7 +23,7 @@ class DatabaseTimetablePlacingProviderImpl(private val store: TransientEntitySto
         return store.transactional(readonly = true) {
             XdTimetablePlacing.query((XdTimetablePlacing::effectiveSince le DateTime.now()) and (XdTimetablePlacing::effectiveUntil eq null))
                 .first().let {
-                    TimetablePlaces(it.getFirstShift(), it.getSecondShift())
+                    TimetablePlaces(it.getFirstShift().map { TimetableCell(it.key, it.value) }, it.getSecondShift().map { TimetableCell(it.key, it.value) })
                 }
         }
     }
@@ -34,7 +35,7 @@ class DatabaseTimetablePlacingProviderImpl(private val store: TransientEntitySto
                     .toJodaDateTime()) and ((XdTimetablePlacing::effectiveUntil eq null) or (XdTimetablePlacing::effectiveUntil ge date.atStartOfDay()
                     .toJodaDateTime()))
             ).firstOrNull()?.let {
-                TimetablePlaces(it.getFirstShift(), it.getSecondShift())
+                TimetablePlaces(it.getFirstShift().map { TimetableCell(it.key, it.value) }, it.getSecondShift().map { TimetableCell(it.key, it.value) })
             }
         }
     }
@@ -45,8 +46,8 @@ class DatabaseTimetablePlacingProviderImpl(private val store: TransientEntitySto
                 it.effectiveUntil = DateTime.now().withTimeAtStartOfDay()
             }
             XdTimetablePlacing.new {
-                setFirstShift(timetablePlaces.firstShift)
-                setSecondShift(timetablePlaces.secondShift)
+                setFirstShift(timetablePlaces.firstShift.associate { it.place to it.timeConstraints })
+                setSecondShift(timetablePlaces.secondShift.associate { it.place to it.timeConstraints })
                 effectiveSince = DateTime.now().withTimeAtStartOfDay()
             }
         }

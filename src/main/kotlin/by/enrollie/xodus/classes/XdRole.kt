@@ -10,6 +10,7 @@ package by.enrollie.xodus.classes
 import by.enrollie.data_classes.RoleData
 import by.enrollie.data_classes.RoleInformationHolder
 import by.enrollie.data_classes.Roles
+import by.enrollie.xodus.util.toJavaLocalDateTime
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.serialization.decodeFromString
@@ -32,30 +33,17 @@ class XdRole(entity: Entity) : XdEntity(entity) {
         return Json.decodeFromString(roleRawData)
     }
 
-    var granted by xdRequiredDateTimeProp { }
-    var revoked by xdDateTimeProp {  }
+    var uniqueID by xdRequiredStringProp(unique = true) { }
 
-    fun getAsRoleData(): RoleData<*> = RoleData(user.id,
-        Roles.getRoleByID(roleID) ?: error("Role with ID $roleID not found"),
+    var granted by xdRequiredDateTimeProp { }
+    var revoked by xdDateTimeProp { }
+
+    fun getAsRoleData(): RoleData = RoleData(
+        uniqueID,
+        user.id,
+        Roles.getRoleByID(roleID) ?: throw IllegalStateException("Role with role ID \"$roleID\" is not defined"),
         getRoleInformation(),
-        LocalDateTime.of(
-            granted.year,
-            granted.monthOfYear,
-            granted.dayOfMonth,
-            granted.hourOfDay,
-            granted.minuteOfHour,
-            granted.secondOfMinute,
-            granted.millisOfSecond
-        ),
-        revoked?.let {
-            LocalDateTime.of(
-                it.year,
-                it.monthOfYear,
-                it.dayOfMonth,
-                it.hourOfDay,
-                it.minuteOfHour,
-                it.secondOfMinute,
-                it.millisOfSecond
-            )
-        })
+        granted.toJavaLocalDateTime(),
+        revoked?.toJavaLocalDateTime()
+    )
 }

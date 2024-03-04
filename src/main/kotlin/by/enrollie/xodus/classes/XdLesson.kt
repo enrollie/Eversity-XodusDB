@@ -20,19 +20,19 @@ class XdLesson(entity: Entity) : XdEntity(entity) {
 
     var id by xdRequiredLongProp { }
     var title by xdRequiredStringProp { }
-    var dateAsString by xdRequiredStringProp { regex(Regex("\\d{4}-[0-1][1-9]-[0-3]\\d")) }
-    fun getDate() = LocalDate.parse(dateAsString)
+    var dateAsString by xdRequiredStringProp { regex(Regex("\\d{4}-[0-1][0-9]-[0-3]\\d")) }
+    fun getDate(): LocalDate = LocalDate.parse(dateAsString)
     fun setDate(value: LocalDate) {
         dateAsString = value.toString()
     }
 
     var placeInTimetable by xdRequiredIntProp { max(15); min(0) }
-    var teachers by xdSetProp<XdLesson, Int>()
+    var teacher by xdRequiredIntProp {  }
     var schoolClass: XdSchoolClass by xdParent(XdSchoolClass::lessons)
     var subgroupID by xdNullableIntProp { }
     var journalID by xdRequiredIntProp { }
 
     fun toLesson(): Lesson = Lesson(
-        id, title, getDate(), placeInTimetable, teachers, schoolClass.id, journalID, subgroupID
+        id.toULong(), title, getDate(), placeInTimetable, teacher, schoolClass.id, journalID, subgroupID
     )
 }
